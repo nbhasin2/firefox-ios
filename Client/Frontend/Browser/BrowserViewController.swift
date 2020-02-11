@@ -454,11 +454,11 @@ class BrowserViewController: UIViewController {
 
         NotificationCenter.default.addObserver(self, selector: #selector(self.appMenuBadgeUpdate), name: .FirefoxAccountStateChange, object: nil)
         
-//        Leanplum.onVariablesChanged {
-//             if(LeanPlumClient.shared.showUpdateETPOnboardingScreen?.boolValue())! {
-//               print("VALUEEEE - CHANGED - LEANPLUM \(LeanPlumClient.shared.showUpdateETPOnboardingScreen?.boolValue())")
-//             }
-//        }
+        Leanplum.onVariablesChanged {
+             if(LeanPlumClient.shared.showUpdateETPOnboardingScreen?.boolValue())! {
+               print("VALUEEEE - CHANGED - LEANPLUM \(LeanPlumClient.shared.showUpdateETPOnboardingScreen?.boolValue())")
+             }
+        }
 //        LeanPlumClient.shared.showUpdateETPOnboardingScreen.did
     }
 
