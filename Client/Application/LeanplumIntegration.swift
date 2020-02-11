@@ -110,6 +110,7 @@ class LeanPlumClient {
     // to prompting with native push permissions.
     private var useFxAPrePush = LPVar.define("useFxAPrePush", with: false)
     var enablePocketVideo = LPVar.define("pocketVideo", with: false)
+    var showUpdateETPOnboardingScreen = LPVar.define("etpOnboarding", with: false)
 
    // var introScreenVars = LPVar.define("IntroScreen", with: IntroCard.defaultCards().compactMap({ $0.asDictonary() }))
 
@@ -151,15 +152,17 @@ class LeanPlumClient {
             log.error("LeanplumIntegration - Could not be started")
             return
         }
-
-        if UIDevice.current.name.contains("MozMMADev") {
+        
+        let appId = "app_MUd3n2yw07Lg5hy0f8hRXuj1jI5ml17ww3haFrbKUBw"
+        let devKey = "dev_i1FsAN4v11gnQpHn33ZE8ZK2svQ07rrenCJr3lPZ5rY"
+//        if UIDevice.current.name.contains("iPad (2)") {
             log.info("LeanplumIntegration - Setting up for Development")
             Leanplum.setDeviceId(UIDevice.current.identifierForVendor?.uuidString)
-            Leanplum.setAppId(settings.appId, withDevelopmentKey: settings.developmentKey)
-        } else {
-            log.info("LeanplumIntegration - Setting up for Production")
-            Leanplum.setAppId(settings.appId, withProductionKey: settings.productionKey)
-        }
+            Leanplum.setAppId(appId, withDevelopmentKey: devKey)
+//        } else {
+//            log.info("LeanplumIntegration - Setting up for Production")
+//            Leanplum.setAppId(settings.appId, withProductionKey: settings.productionKey)
+//        }
 
         Leanplum.syncResourcesAsync(true)
 

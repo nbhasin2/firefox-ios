@@ -14,6 +14,7 @@ import SyncTelemetry
 import Sync
 import CoreSpotlight
 import UserNotifications
+import Leanplum
 
 #if canImport(BackgroundTasks)
  import BackgroundTasks
@@ -198,7 +199,6 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UIViewControllerRestorati
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
         // Override point for customization after application launch.
         var shouldPerformAdditionalDelegateHandling = true
-
         adjustIntegration?.triggerApplicationDidFinishLaunchingWithOptions(launchOptions)
 
         UNUserNotificationCenter.current().delegate = self
