@@ -30,19 +30,8 @@ private struct ReaderModeStyleViewControllerUX {
 
 protocol ReaderModeStyleViewControllerDelegate {
     func readerModeStyleViewController(_ readerModeStyleViewController: ReaderModeStyleViewController,
-                                           didConfigureStyle style: ReaderModeStyle)
-
-    func readerModeStyleViewController(_ readerModeStyleViewController: ReaderModeStyleViewController,
                                            didConfigureStyle style: ReaderModeStyle,
                                            isUsingUserDefinedColor: Bool)
-}
-
-extension ReaderModeStyleViewControllerDelegate {
-    // Can't use default values in protocols, using chained method calls instead
-    func readerModeStyleViewController(_ readerModeStyleViewController: ReaderModeStyleViewController,
-                                       didConfigureStyle style: ReaderModeStyle) {
-        self.readerModeStyleViewController(readerModeStyleViewController, didConfigureStyle: style, isUsingUserDefinedColor: false)
-    }
 }
 
 // MARK: -
