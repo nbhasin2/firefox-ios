@@ -29,6 +29,25 @@ enum ReaderModeTheme: String {
     case light = "light"
     case dark = "dark"
     case sepia = "sepia"
+
+    init() {
+        self = ReaderModeTheme(rawValue: ThemeManager.instance.currentName.rawValue)?.preferredTheme() ?? .light
+    }
+}
+
+extension ReaderModeTheme {
+    func preferredTheme(for theme: ReaderModeTheme? = nil) -> ReaderModeTheme {
+        let theme = theme ?? self
+        let appWideTheme = ReaderModeTheme(rawValue: ThemeManager.instance.currentName.rawValue) ?? .light
+
+        if appWideTheme == .dark {
+            return .dark // app-wide dark overrides all
+        } else if theme != .sepia {
+            return .light
+        }
+
+        return .sepia
+    }
 }
 
 private struct FontFamily {
@@ -139,6 +158,10 @@ struct ReaderModeStyle {
     func encodeAsDictionary() -> [String: Any] {
         return ["theme": theme.rawValue, "fontType": fontType.rawValue, "fontSize": fontSize.rawValue]
     }
+    
+    init() {
+        self.init(theme: ReaderModeTheme(), fontType: .sansSerif, fontSize: ReaderModeFontSize.defaultSize)
+    }
 
     init(theme: ReaderModeTheme, fontType: ReaderModeFontType, fontSize: ReaderModeFontSize) {
         self.theme = theme
@@ -162,9 +185,13 @@ struct ReaderModeStyle {
             return nil
         }
 
-        self.theme = theme!
+        self.theme = theme ?? ReaderModeTheme()
         self.fontType = fontType
         self.fontSize = fontSize!
+    }
+    
+    mutating func ensurePreferredColorThemeIfNeeded() {
+        self.theme = ReaderModeTheme().preferredTheme(for: self.theme)
     }
 }
 

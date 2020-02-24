@@ -29,7 +29,20 @@ private struct ReaderModeStyleViewControllerUX {
 // MARK: -
 
 protocol ReaderModeStyleViewControllerDelegate {
-    func readerModeStyleViewController(_ readerModeStyleViewController: ReaderModeStyleViewController, didConfigureStyle style: ReaderModeStyle)
+    func readerModeStyleViewController(_ readerModeStyleViewController: ReaderModeStyleViewController,
+                                           didConfigureStyle style: ReaderModeStyle)
+
+    func readerModeStyleViewController(_ readerModeStyleViewController: ReaderModeStyleViewController,
+                                           didConfigureStyle style: ReaderModeStyle,
+                                           isUsingUserDefinedColor: Bool)
+}
+
+extension ReaderModeStyleViewControllerDelegate {
+    // Can't use default values in protocols, using chained method calls instead
+    func readerModeStyleViewController(_ readerModeStyleViewController: ReaderModeStyleViewController,
+                                       didConfigureStyle style: ReaderModeStyle) {
+        self.readerModeStyleViewController(readerModeStyleViewController, didConfigureStyle: style, isUsingUserDefinedColor: false)
+    }
 }
 
 // MARK: -
@@ -48,6 +61,18 @@ class ReaderModeStyleViewController: UIViewController, Themeable {
     fileprivate var fontSizeRow: UIView!
     fileprivate var brightnessRow: UIView!
 
+    // Keeps user-defined reader color until reader mode is closed or reloaded
+    fileprivate var isUsingUserDefinedColor = false
+    
+    func applyTheme(_ preferences: Prefs, contentScript: TabContentScript) {
+        guard let readerPreferences = preferences.dictionaryForKey(ReaderModeProfileKeyStyle),
+              let readerMode = contentScript as? ReaderMode,
+              var style = ReaderModeStyle(dict: readerPreferences) else { return }
+
+        style.ensurePreferredColorThemeIfNeeded()
+        readerMode.style = style
+    }
+    
     func applyTheme() {
         fontTypeRow.backgroundColor = UIColor.theme.tableView.rowBackground
         fontSizeRow.backgroundColor = UIColor.theme.tableView.rowBackground
@@ -219,7 +244,9 @@ class ReaderModeStyleViewController: UIViewController, Themeable {
 
     @objc func changeFontType(_ button: FontTypeButton) {
         selectFontType(button.fontType)
-        delegate?.readerModeStyleViewController(self, didConfigureStyle: readerModeStyle)
+        delegate?.readerModeStyleViewController(self,
+        didConfigureStyle: readerModeStyle,
+        isUsingUserDefinedColor: isUsingUserDefinedColor)
     }
 
     fileprivate func selectFontType(_ fontType: ReaderModeFontType) {
@@ -244,7 +271,9 @@ class ReaderModeStyleViewController: UIViewController, Themeable {
             readerModeStyle.fontSize = ReaderModeFontSize.defaultSize
         }
         updateFontSizeButtons()
-        delegate?.readerModeStyleViewController(self, didConfigureStyle: readerModeStyle)
+        delegate?.readerModeStyleViewController(self,
+        didConfigureStyle: readerModeStyle,
+        isUsingUserDefinedColor: isUsingUserDefinedColor)
     }
 
     fileprivate func updateFontSizeButtons() {
@@ -264,7 +293,10 @@ class ReaderModeStyleViewController: UIViewController, Themeable {
 
     @objc func changeTheme(_ button: ThemeButton) {
         selectTheme(button.theme)
-        delegate?.readerModeStyleViewController(self, didConfigureStyle: readerModeStyle)
+        isUsingUserDefinedColor = true
+        delegate?.readerModeStyleViewController(self,
+                                                didConfigureStyle: readerModeStyle,
+                                                isUsingUserDefinedColor: true)
     }
 
     fileprivate func selectTheme(_ theme: ReaderModeTheme) {

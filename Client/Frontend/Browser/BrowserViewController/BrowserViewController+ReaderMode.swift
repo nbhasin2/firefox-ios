@@ -23,7 +23,13 @@ extension BrowserViewController: ReaderModeDelegate {
 }
 
 extension BrowserViewController: ReaderModeStyleViewControllerDelegate {
-    func readerModeStyleViewController(_ readerModeStyleViewController: ReaderModeStyleViewController, didConfigureStyle style: ReaderModeStyle) {
+    func readerModeStyleViewController(_ readerModeStyleViewController: ReaderModeStyleViewController,
+                                   didConfigureStyle style: ReaderModeStyle,
+                                   isUsingUserDefinedColor: Bool) {
+        var newStyle = style
+        if !isUsingUserDefinedColor {
+            newStyle.ensurePreferredColorThemeIfNeeded()
+        }
         // Persist the new style to the profile
         let encodedStyle: [String: Any] = style.encodeAsDictionary()
         profile.prefs.setObject(encodedStyle, forKey: ReaderModeProfileKeyStyle)
@@ -32,9 +38,9 @@ extension BrowserViewController: ReaderModeStyleViewControllerDelegate {
             if let tab = tabManager[tabIndex] {
                 if let readerMode = tab.getContentScript(name: "ReaderMode") as? ReaderMode {
                     if readerMode.state == ReaderModeState.active {
-                        readerMode.style = ReaderModeStyle(theme: style.theme,
-                                                           fontType: ReaderModeFontType(type: style.fontType.rawValue),
-                                                           fontSize: style.fontSize)
+                        readerMode.style = ReaderModeStyle(theme: newStyle.theme,
+                                                           fontType: ReaderModeFontType(type: newStyle.fontType.rawValue),
+                                                           fontSize: newStyle.fontSize)
                     }
                 }
             }
@@ -152,6 +158,10 @@ extension BrowserViewController {
         }
         readerModeStyle.fontSize = ReaderModeFontSize.defaultSize
         self.readerModeStyleViewController(ReaderModeStyleViewController(), didConfigureStyle: readerModeStyle)
+    }
+    
+    func appyThemeForPreferences(_ preferences: Prefs, contentScript: TabContentScript) {
+        ReaderModeStyleViewController().applyTheme(preferences, contentScript: contentScript)
     }
 }
 
