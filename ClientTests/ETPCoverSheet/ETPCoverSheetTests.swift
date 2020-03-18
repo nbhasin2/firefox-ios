@@ -6,10 +6,10 @@ import Foundation
 @testable import Client
 import XCTest
 import Shared
-
+var carryInt = 0
 class ETPCoverSheetTests: XCTestCase {
     var prefs: NSUserDefaultsPrefs!
-
+    
     override func setUp() {
         super.setUp()
         prefs = NSUserDefaultsPrefs(prefix: "UpdateViewModelPrefs")
@@ -17,6 +17,12 @@ class ETPCoverSheetTests: XCTestCase {
 
     override func tearDown() {
         prefs.clearAll()
+        carryInt = carryInt +   1
+               print("Instance Teardown \(carryInt)")
+//        super.tearDown()
+    }
+    
+    override class func tearDown() {
         super.tearDown()
     }
     

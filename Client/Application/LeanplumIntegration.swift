@@ -131,6 +131,7 @@ class LeanPlumClient {
     }
 
     func setup(profile: Profile) {
+        var enablePocketVideo2 = LPVar.define("pocketVideo2", with: false)
         self.profile = profile
     }
 
@@ -154,15 +155,22 @@ class LeanPlumClient {
             log.error("LeanplumIntegration - Could not be started")
             return
         }
+        
+        let appId = ""
+        let devKey = ""
 
-        if UIDevice.current.name.contains("MozMMADev") {
-            log.info("LeanplumIntegration - Setting up for Development")
-            Leanplum.setDeviceId(UIDevice.current.identifierForVendor?.uuidString)
-            Leanplum.setAppId(settings.appId, withDevelopmentKey: settings.developmentKey)
-        } else {
-            log.info("LeanplumIntegration - Setting up for Production")
-            Leanplum.setAppId(settings.appId, withProductionKey: settings.productionKey)
-        }
+        log.info("LeanplumIntegration - Setting up for Development")
+        Leanplum.setDeviceId(UIDevice.current.identifierForVendor?.uuidString)
+        Leanplum.setAppId(appId, withDevelopmentKey: devKey)
+
+//        if UIDevice.current.name.contains("MozMMADev") {
+//            log.info("LeanplumIntegration - Setting up for Development")
+//            Leanplum.setDeviceId(UIDevice.current.identifierForVendor?.uuidString)
+//            Leanplum.setAppId(settings.appId, withDevelopmentKey: settings.developmentKey)
+//        } else {
+//            log.info("LeanplumIntegration - Setting up for Production")
+//            Leanplum.setAppId(settings.appId, withProductionKey: settings.productionKey)
+//        }
 
         Leanplum.syncResourcesAsync(true)
 
@@ -177,7 +185,8 @@ class LeanPlumClient {
 
         self.setupCustomTemplates()
 
-        Leanplum.start(withUserId: nil, userAttributes: attributes, responseHandler: { _ in
+        Leanplum.start(withUserId: nil, userAttributes: attributes, responseHandler: { (value) in
+            print("Callback value: \(value)")
             self.track(event: .openedApp)
 
             // We need to check if the app is a clean install to use for
@@ -308,10 +317,10 @@ class LeanPlumClient {
             }
 
             // Don't display permission screen if they have already allowed/disabled push permissions
-            if self.prefs?.boolForKey(AppRequestedUserNotificationsPrefKey) ?? false {
-                FxALoginHelper.sharedInstance.readyForSyncing()
-                return false
-            }
+//            if self.prefs?.boolForKey(AppRequestedUserNotificationsPrefKey) ?? false {
+//                FxALoginHelper.sharedInstance.readyForSyncing()
+//                return false
+//            }
 
             // Present Alert View onto the current top view controller
             let rootViewController = UIApplication.topViewController()

@@ -117,6 +117,8 @@ class ETPCoverSheetViewController: UIViewController {
         // Constraints
         setupTopView()
         setupBottomView()
+        
+        NotificationCenter.default.addObserver(self, selector: #selector(updateTheme), name: .DisplayThemeChanged, object: nil)
     }
     
     override func viewDidAppear(_ animated: Bool) {
@@ -195,8 +197,13 @@ class ETPCoverSheetViewController: UIViewController {
     }
 }
 
-// UIViewController setup to keep it in portrait mode
+// UIViewController setup to keep it in portrait mode and
 extension ETPCoverSheetViewController {
+    
+    @objc func updateTheme() {
+        view.layoutIfNeeded()
+    }
+    
     override var shouldAutorotate: Bool {
         return false
     }

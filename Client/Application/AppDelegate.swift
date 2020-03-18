@@ -14,6 +14,7 @@ import SyncTelemetry
 import Sync
 import CoreSpotlight
 import UserNotifications
+import Leanplum
 
 #if canImport(BackgroundTasks)
  import BackgroundTasks
@@ -198,6 +199,10 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UIViewControllerRestorati
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
         // Override point for customization after application launch.
         var shouldPerformAdditionalDelegateHandling = true
+        
+        var ABOnboard = LPVar.define("ABOnboard", with: 23)
+        print(LeanplumSocket.shared()?.connected)
+//        var showUpdateETPOnboardingScreen = LPVar.define("etpOnboarding", with: false)
 
         adjustIntegration?.triggerApplicationDidFinishLaunchingWithOptions(launchOptions)
 
@@ -220,13 +225,14 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UIViewControllerRestorati
             // This will block "performActionForShortcutItem:completionHandler" from being called.
             shouldPerformAdditionalDelegateHandling = false
         }
-
+        
         // Force the ToolbarTextField in LTR mode - without this change the UITextField's clear
         // button will be in the incorrect position and overlap with the input text. Not clear if
         // that is an iOS bug or not.
         AutocompleteTextField.appearance().semanticContentAttribute = .forceLeftToRight
         // Leanplum usersearch variable setup for onboarding research
         _ = OnboardingUserResearch()
+//        var showOnboardingScreen6 = LPVar.define("showOnboardingScreen6", with: false)
         // Leanplum setup
         if let profile = self.profile, LeanPlumClient.shouldEnable(profile: profile) {
             LeanPlumClient.shared.setup(profile: profile)

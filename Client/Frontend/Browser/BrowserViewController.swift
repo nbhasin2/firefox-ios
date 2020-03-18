@@ -16,6 +16,7 @@ import SDWebImage
 import SwiftyJSON
 import Telemetry
 import Sentry
+import Leanplum
 
 private let KVOs: [KVOConstants] = [
     .estimatedProgress,
@@ -2004,6 +2005,10 @@ extension BrowserViewController: IntroViewControllerDelegate {
     
     func onboardingUserResearchHelper() {
         print("lp initial value \(String(describing: onboardingUserResearch?.lpVariable?.boolValue()))")
+//        Leanplum.onVariablesChanged {
+//            print("Some changed")
+//        }
+        print("Leanplum Socket : \(LeanplumSocket.shared()?.connected)")
         onboardingUserResearch?.updatedLPVariables = {(lpVariable) -> () in
             print("lpVariable \(String(describing: lpVariable?.boolValue()))")
         }
