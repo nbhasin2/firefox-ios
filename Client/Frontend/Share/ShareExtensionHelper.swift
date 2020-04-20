@@ -5,22 +5,121 @@
 import Foundation
 import Shared
 import OnePasswordExtension
+import ShareTo
+import Storage
 
 private let log = Logger.browserLogger
+typealias ActivityViewControllerResult = Deferred<Maybe<UIActivityViewController>>
+
+class CreateActivityViewControllerError: MaybeErrorType {
+    internal var description: String {
+        return "Unable to create activity view controller"
+    }
+}
+
+typealias DevicesResult = Deferred<Maybe<[DevicesShareSheet]>>
+
+class DevicesError: MaybeErrorType {
+    internal var description: String {
+        return "Unable to find devices"
+    }
+}
 
 class ShareExtensionHelper: NSObject {
     fileprivate weak var selectedTab: Tab?
 
+    
     fileprivate let url: URL
     fileprivate var onePasswordExtensionItem: NSExtensionItem!
     fileprivate let browserFillIdentifier = "org.appextension.fill-browser-action"
 
     fileprivate func isFile(url: URL) -> Bool { url.scheme == "file" }
-
+    fileprivate let profile = BrowserProfile(localName: "profile")
+    var devicesActions:[DevicesShareSheet]?
+    
     // Can be a file:// or http(s):// url
     init(url: URL, tab: Tab?) {
         self.url = url
         self.selectedTab = tab
+    }
+    
+    func getDevices() -> DevicesResult {
+        let deferred = DevicesResult()
+        var devicesShareSheetAction = [DevicesShareSheet]()
+        self.profile.remoteClientsAndTabs.getRemoteDevices().uponQueue(.main) { res in
+            if let devices = res.successValue {
+               for device in devices {
+                   let deviceShareItem = DevicesShareSheet(title: device.name, image: UIImage(named: "faviconFox")) { _ in
+                        let shareItem = ShareItem(url: self.url.absoluteString, title: nil, favicon: nil)
+                        self.profile.sendItem(shareItem, toDevices: [device]).uponQueue(.main) { _ in
+                    }
+                   }
+                devicesShareSheetAction.append(deviceShareItem)
+                
+                
+               }
+            print("First Device - \(devicesShareSheetAction.first?._activityTitle)")
+               deferred.fill(Maybe(success: devicesShareSheetAction))
+           } else {
+                deferred.fill(Maybe(failure: DevicesError()))
+                print("Remote devices doesn't exist")
+           }
+        }
+        return deferred
+    }
+
+    func createActivityViewController2(devices:[DevicesShareSheet]? = nil, completionHandler: @escaping (_ completed: Bool, _ activityType: UIActivity.ActivityType?) -> Void) -> UIActivityViewController {
+        var activityItems = [AnyObject]()
+        self.devicesActions = devices
+        
+        let printInfo = UIPrintInfo(dictionary: nil)
+        printInfo.jobName = (url.absoluteString as NSString).lastPathComponent
+        printInfo.outputType = .general
+        activityItems.append(printInfo)
+
+        if let tab = selectedTab {
+            activityItems.append(TabPrintPageRenderer(tab: tab))
+        }
+
+        if let title = selectedTab?.title {
+            activityItems.append(TitleActivityItemProvider(title: title))
+        }
+        activityItems.append(self)
+        
+        let activityViewController = UIActivityViewController(activityItems: activityItems, applicationActivities: devicesActions)
+        
+        // Hide 'Add to Reading List' which currently uses Safari.
+        // We would also hide View Later, if possible, but the exclusion list doesn't currently support
+        // third-party activity types (rdar://19430419).
+        activityViewController.excludedActivityTypes = [
+            UIActivity.ActivityType.addToReadingList,
+        ]
+
+        // This needs to be ready by the time the share menu has been displayed and
+        // activityViewController(activityViewController:, activityType:) is called,
+        // which is after the user taps the button. So a million cycles away.
+        findLoginExtensionItem()
+
+        activityViewController.completionWithItemsHandler = { activityType, completed, returnedItems, activityError in
+            if !completed {
+                completionHandler(completed, activityType)
+                return
+            }
+            // Bug 1392418 - When copying a url using the share extension there are 2 urls in the pasteboard.
+            // This is a iOS 11.0 bug. Fixed in 11.2
+            if UIPasteboard.general.hasURLs, let url = UIPasteboard.general.urls?.first {
+                UIPasteboard.general.urls = [url]
+            }
+
+            if self.isPasswordManager(activityType: activityType) {
+                if let logins = returnedItems {
+                    self.fillPasswords(logins as [AnyObject])
+                }
+            }
+
+            completionHandler(completed, activityType)
+        }
+        return activityViewController
     }
 
     func createActivityViewController(_ completionHandler: @escaping (_ completed: Bool, _ activityType: UIActivity.ActivityType?) -> Void) -> UIActivityViewController {
@@ -40,8 +139,40 @@ class ShareExtensionHelper: NSObject {
         }
         activityItems.append(self)
 
-        let activityViewController = UIActivityViewController(activityItems: activityItems, applicationActivities: nil)
+//        let activityViewController = UIActivityViewController(activityItems: activityItems, applicationActivities: nil)
 
+//        self.profile.remoteClientsAndTabs.getRemoteDevices().uponQueue(.main) { res in
+//            if let devices = res.successValue {
+//               for device in devices {
+//                   let deviceShareItem = DevicesShareSheet(title: device.name, image: UIImage(named: "faviconFox")) { _ in
+//                        let shareItem = ShareItem(url: self.url.absoluteString, title: nil, favicon: nil)
+//                        self.profile.sendItem(shareItem, toDevices: [device]).uponQueue(.main) { _ in
+//                    }
+//                   }
+//                self.devicesActions.append(deviceShareItem)
+//                print("First Device - \(self.devicesActions.first?._activityTitle)")
+//               }
+//           } else {
+//                //Doesn't exist
+//                print("Remote devices doesn't exist")
+//           }
+//        }
+//
+//
+//        if let devices = self.profile.remoteClientsAndTabs.getRemoteDevices().value.successValue {
+//            for device in devices {
+//                let deviceShareItem = DevicesShareSheet(title: device.name, image: UIImage(named: "faviconFox")) { sharedItems in
+//                    self.profile.sendItem(ShareItem(url: self.url.absoluteString, title: nil, favicon: nil), toDevices: [device])
+//                }
+//                devicesActions.append(deviceShareItem)
+//                print("DEVICES 2 - \(self.devicesActions.first?._activityTitle)")
+//            }
+//        }
+        
+//        print("DEVICES 3 - \(self.devicesActions.first?._activityTitle)")
+        
+        let activityViewController = UIActivityViewController(activityItems: activityItems, applicationActivities: devicesActions)
+        
         // Hide 'Add to Reading List' which currently uses Safari.
         // We would also hide View Later, if possible, but the exclusion list doesn't currently support
         // third-party activity types (rdar://19430419).

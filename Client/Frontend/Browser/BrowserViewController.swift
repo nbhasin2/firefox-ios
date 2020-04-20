@@ -1052,27 +1052,123 @@ class BrowserViewController: UIViewController {
 
     func presentActivityViewController(_ url: URL, tab: Tab? = nil, sourceView: UIView?, sourceRect: CGRect, arrowDirection: UIPopoverArrowDirection) {
         let helper = ShareExtensionHelper(url: url, tab: tab)
+        helper.getDevices().uponQueue(.main) { result in
+            guard let devices = result.successValue else { return }
+           
+            let controller = helper.createActivityViewController2(devices: devices) { [unowned self] completed, _ in
+                // After dismissing, check to see if there were any prompts we queued up
+                self.showQueuedAlertIfAvailable()
 
-        let controller = helper.createActivityViewController({ [unowned self] completed, _ in
-            // After dismissing, check to see if there were any prompts we queued up
-            self.showQueuedAlertIfAvailable()
+                // Usually the popover delegate would handle nil'ing out the references we have to it
+                // on the BVC when displaying as a popover but the delegate method doesn't seem to be
+                // invoked on iOS 10. See Bug 1297768 for additional details.
+                self.displayedPopoverController = nil
+                self.updateDisplayedPopoverProperties = nil
+            }
 
-            // Usually the popover delegate would handle nil'ing out the references we have to it
-            // on the BVC when displaying as a popover but the delegate method doesn't seem to be
-            // invoked on iOS 10. See Bug 1297768 for additional details.
-            self.displayedPopoverController = nil
-            self.updateDisplayedPopoverProperties = nil
-        })
+            if let popoverPresentationController = controller.popoverPresentationController {
+                popoverPresentationController.sourceView = sourceView
+                popoverPresentationController.sourceRect = sourceRect
+                popoverPresentationController.permittedArrowDirections = arrowDirection
+                popoverPresentationController.delegate = self
+            }
 
-        if let popoverPresentationController = controller.popoverPresentationController {
-            popoverPresentationController.sourceView = sourceView
-            popoverPresentationController.sourceRect = sourceRect
-            popoverPresentationController.permittedArrowDirections = arrowDirection
-            popoverPresentationController.delegate = self
+            self.present(controller, animated: true, completion: nil)
+            LeanPlumClient.shared.track(event: .userSharedWebpage)
         }
-
-        present(controller, animated: true, completion: nil)
-        LeanPlumClient.shared.track(event: .userSharedWebpage)
+//        self.profile.remoteClientsAndTabs.getRemoteDevices().uponQueue(.main) { res in
+//            if let devices = res.successValue {
+//               for device in devices {
+//                   let deviceShareItem = DevicesShareSheet(title: device.name, image: UIImage(named: "faviconFox")) { _ in
+//                        let shareItem = ShareItem(url: self.url.absoluteString, title: nil, favicon: nil)
+//                        self.profile.sendItem(shareItem, toDevices: [device]).uponQueue(.main) { _ in
+//                    }
+//                   }
+//                self.devicesActions.append(deviceShareItem)
+//                print("DEVICES 1 - \(self.devicesActions.first?._activityTitle)")
+//               }
+//           } else {
+//                //Doesn't exist
+//                print("Remote devices doesn't exist")
+//           }
+//        }
+        
+//        let controller = helper.createActivityViewController({ [unowned self] completed, _ in
+//            // After dismissing, check to see if there were any prompts we queued up
+//            self.showQueuedAlertIfAvailable()
+//
+//            // Usually the popover delegate would handle nil'ing out the references we have to it
+//            // on the BVC when displaying as a popover but the delegate method doesn't seem to be
+//            // invoked on iOS 10. See Bug 1297768 for additional details.
+//            self.displayedPopoverController = nil
+//            self.updateDisplayedPopoverProperties = nil
+//        })
+//
+//        if let popoverPresentationController = controller.popoverPresentationController {
+//            popoverPresentationController.sourceView = sourceView
+//            popoverPresentationController.sourceRect = sourceRect
+//            popoverPresentationController.permittedArrowDirections = arrowDirection
+//            popoverPresentationController.delegate = self
+//        }
+//
+//        present(controller, animated: true, completion: nil)
+//        LeanPlumClient.shared.track(event: .userSharedWebpage)
+//
+//        let temp = helper.createActivityViewControllerWithDevices({ [unowned self] completed, _ in
+//            // After dismissing, check to see if there were any prompts we queued up
+//            self.showQueuedAlertIfAvailable()
+//
+//            // Usually the popover delegate would handle nil'ing out the references we have to it
+//            // on the BVC when displaying as a popover but the delegate method doesn't seem to be
+//            // invoked on iOS 10. See Bug 1297768 for additional details.
+//            self.displayedPopoverController = nil
+//            self.updateDisplayedPopoverProperties = nil
+//            }).
+//
+//        helper.createActivityViewControllerWithDevices(<#(Bool, UIActivity.ActivityType?) -> Void#>).uponQueue(.main) { (result) in
+//            let controller = helper.createActivityViewController({ [unowned self] completed, _ in
+//                // After dismissing, check to see if there were any prompts we queued up
+//                self.showQueuedAlertIfAvailable()
+//
+//                // Usually the popover delegate would handle nil'ing out the references we have to it
+//                // on the BVC when displaying as a popover but the delegate method doesn't seem to be
+//                // invoked on iOS 10. See Bug 1297768 for additional details.
+//                self.displayedPopoverController = nil
+//                self.updateDisplayedPopoverProperties = nil
+//            })
+//
+//            if let popoverPresentationController = controller.popoverPresentationController {
+//                popoverPresentationController.sourceView = sourceView
+//                popoverPresentationController.sourceRect = sourceRect
+//                popoverPresentationController.permittedArrowDirections = arrowDirection
+//                popoverPresentationController.delegate = self
+//            }
+//
+//            self.present(controller, animated: true, completion: nil)
+//            LeanPlumClient.shared.track(event: .userSharedWebpage)
+//        }
+        
+//        OLD CODE
+//        let controller = helper.createActivityViewController({ [unowned self] completed, _ in
+//            // After dismissing, check to see if there were any prompts we queued up
+//            self.showQueuedAlertIfAvailable()
+//
+//            // Usually the popover delegate would handle nil'ing out the references we have to it
+//            // on the BVC when displaying as a popover but the delegate method doesn't seem to be
+//            // invoked on iOS 10. See Bug 1297768 for additional details.
+//            self.displayedPopoverController = nil
+//            self.updateDisplayedPopoverProperties = nil
+//        })
+//
+//        if let popoverPresentationController = controller.popoverPresentationController {
+//            popoverPresentationController.sourceView = sourceView
+//            popoverPresentationController.sourceRect = sourceRect
+//            popoverPresentationController.permittedArrowDirections = arrowDirection
+//            popoverPresentationController.delegate = self
+//        }
+//
+//        present(controller, animated: true, completion: nil)
+//        LeanPlumClient.shared.track(event: .userSharedWebpage)
     }
 
     @objc fileprivate func openSettings() {
