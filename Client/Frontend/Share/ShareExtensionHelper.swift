@@ -26,7 +26,6 @@ class ShareExtensionHelper: NSObject {
 
     fileprivate func isFile(url: URL) -> Bool { url.scheme == "file" }
     fileprivate let profile = BrowserProfile(localName: "profile")
-    var devicesActions:[DevicesShareSheet] = [DevicesShareSheet]()
     
     // Can be a file:// or http(s):// url
     init(url: URL, tab: Tab?) {
@@ -55,21 +54,9 @@ class ShareExtensionHelper: NSObject {
         }
         return deferred
     }
-    
-    func updateDevices() {
-        if let devices = self.profile.remoteClientsAndTabs.getRemoteDevices().value.successValue {
-            for device in devices {
-                let deviceShareItem = DevicesShareSheet(title: device.name, image: UIImage(named: "faviconFox")) { sharedItems in
-                    self.profile.sendItem(ShareItem(url: self.url.absoluteString, title: nil, favicon: nil), toDevices: [device])
-                }
-                devicesActions.append(deviceShareItem)
-            }
-        }
-    }
 
     func createActivityViewController(devices:[DevicesShareSheet]? = nil, completionHandler: @escaping (_ completed: Bool, _ activityType: UIActivity.ActivityType?) -> Void) -> UIActivityViewController {
         var activityItems = [AnyObject]()
-//        self.devicesActions = devices
         
         let printInfo = UIPrintInfo(dictionary: nil)
         printInfo.jobName = (url.absoluteString as NSString).lastPathComponent
@@ -85,9 +72,7 @@ class ShareExtensionHelper: NSObject {
         }
         activityItems.append(self)
         
-//        let activityViewController = UIActivityViewController(activityItems: activityItems, applicationActivities: devices)
-        
-        let activityViewController = UIActivityViewController(activityItems: activityItems, applicationActivities: devicesActions)
+        let activityViewController = UIActivityViewController(activityItems: activityItems, applicationActivities: devices)
         
         // Hide 'Add to Reading List' which currently uses Safari.
         // We would also hide View Later, if possible, but the exclusion list doesn't currently support

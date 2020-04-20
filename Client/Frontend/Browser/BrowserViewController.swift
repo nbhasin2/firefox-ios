@@ -1052,52 +1052,29 @@ class BrowserViewController: UIViewController {
 
     func presentActivityViewController(_ url: URL, tab: Tab? = nil, sourceView: UIView?, sourceRect: CGRect, arrowDirection: UIPopoverArrowDirection) {
         let helper = ShareExtensionHelper(url: url, tab: tab)
-//        helper.getRemoteDevices().uponQueue(.main) { result in
-//            guard let devices = result.successValue else { return }
-//            let controller = helper.createActivityViewController(devices: devices) { [unowned self] completed, _ in
-//                // After dismissing, check to see if there were any prompts we queued up
-//                self.showQueuedAlertIfAvailable()
-//
-//                // Usually the popover delegate would handle nil'ing out the references we have to it
-//                // on the BVC when displaying as a popover but the delegate method doesn't seem to be
-//                // invoked on iOS 10. See Bug 1297768 for additional details.
-//                self.displayedPopoverController = nil
-//                self.updateDisplayedPopoverProperties = nil
-//            }
-//
-//            if let popoverPresentationController = controller.popoverPresentationController {
-//                popoverPresentationController.sourceView = sourceView
-//                popoverPresentationController.sourceRect = sourceRect
-//                popoverPresentationController.permittedArrowDirections = arrowDirection
-//                popoverPresentationController.delegate = self
-//            }
-//
-//            self.present(controller, animated: true, completion: nil)
-//            LeanPlumClient.shared.track(event: .userSharedWebpage)
-//        }
-        
-        helper.updateDevices()
-        let controller = helper.createActivityViewController { [unowned self] completed, _ in
-            
-            // After dismissing, check to see if there were any prompts we queued up
-            self.showQueuedAlertIfAvailable()
+        helper.getRemoteDevices().uponQueue(.main) { result in
+            guard let devices = result.successValue else { return }
+            let controller = helper.createActivityViewController(devices: devices) { [unowned self] completed, _ in
+                // After dismissing, check to see if there were any prompts we queued up
+                self.showQueuedAlertIfAvailable()
 
-            // Usually the popover delegate would handle nil'ing out the references we have to it
-            // on the BVC when displaying as a popover but the delegate method doesn't seem to be
-            // invoked on iOS 10. See Bug 1297768 for additional details.
-            self.displayedPopoverController = nil
-            self.updateDisplayedPopoverProperties = nil
+                // Usually the popover delegate would handle nil'ing out the references we have to it
+                // on the BVC when displaying as a popover but the delegate method doesn't seem to be
+                // invoked on iOS 10. See Bug 1297768 for additional details.
+                self.displayedPopoverController = nil
+                self.updateDisplayedPopoverProperties = nil
+            }
+
+            if let popoverPresentationController = controller.popoverPresentationController {
+                popoverPresentationController.sourceView = sourceView
+                popoverPresentationController.sourceRect = sourceRect
+                popoverPresentationController.permittedArrowDirections = arrowDirection
+                popoverPresentationController.delegate = self
+            }
+
+            self.present(controller, animated: true, completion: nil)
+            LeanPlumClient.shared.track(event: .userSharedWebpage)
         }
-
-        if let popoverPresentationController = controller.popoverPresentationController {
-            popoverPresentationController.sourceView = sourceView
-            popoverPresentationController.sourceRect = sourceRect
-            popoverPresentationController.permittedArrowDirections = arrowDirection
-            popoverPresentationController.delegate = self
-        }
-
-        self.present(controller, animated: true, completion: nil)
-        LeanPlumClient.shared.track(event: .userSharedWebpage)
     }
 
     @objc fileprivate func openSettings() {
