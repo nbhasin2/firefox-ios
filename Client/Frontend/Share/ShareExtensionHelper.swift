@@ -9,19 +9,10 @@ import ShareTo
 import Storage
 
 private let log = Logger.browserLogger
-typealias ActivityViewControllerResult = Deferred<Maybe<UIActivityViewController>>
-
-class CreateActivityViewControllerError: MaybeErrorType {
-    internal var description: String {
-        return "Unable to create activity view controller"
-    }
-}
-
 typealias DevicesResult = Deferred<Maybe<[DevicesShareSheet]>>
-
 class DevicesError: MaybeErrorType {
     internal var description: String {
-        return "Unable to find devices"
+        return "Err: Unable to find remote devices"
     }
 }
 
@@ -35,7 +26,7 @@ class ShareExtensionHelper: NSObject {
 
     fileprivate func isFile(url: URL) -> Bool { url.scheme == "file" }
     fileprivate let profile = BrowserProfile(localName: "profile")
-    var devicesActions:[DevicesShareSheet]?
+    var devicesActions:[DevicesShareSheet] = [DevicesShareSheet]()
     
     // Can be a file:// or http(s):// url
     init(url: URL, tab: Tab?) {
@@ -43,34 +34,42 @@ class ShareExtensionHelper: NSObject {
         self.selectedTab = tab
     }
     
-    func getDevices() -> DevicesResult {
+    func getRemoteDevices() -> DevicesResult {
         let deferred = DevicesResult()
         var devicesShareSheetAction = [DevicesShareSheet]()
-        self.profile.remoteClientsAndTabs.getRemoteDevices().uponQueue(.main) { res in
-            if let devices = res.successValue {
+        self.profile.remoteClientsAndTabs.getRemoteDevices().uponQueue(.main) { result in
+            if let devices = result.successValue {
                for device in devices {
-                   let deviceShareItem = DevicesShareSheet(title: device.name, image: UIImage(named: "faviconFox")) { _ in
+                   let deviceShareItem = DevicesShareSheet(title: device.name, image: #imageLiteral(resourceName: "faviconFox")) { _ in
                         let shareItem = ShareItem(url: self.url.absoluteString, title: nil, favicon: nil)
                         self.profile.sendItem(shareItem, toDevices: [device]).uponQueue(.main) { _ in
+                        }
                     }
-                   }
                 devicesShareSheetAction.append(deviceShareItem)
-                
-                
-               }
-            print("First Device - \(devicesShareSheetAction.first?._activityTitle)")
+                }
                deferred.fill(Maybe(success: devicesShareSheetAction))
            } else {
                 deferred.fill(Maybe(failure: DevicesError()))
-                print("Remote devices doesn't exist")
+                print("Err: Unable to find remote devices")
            }
         }
         return deferred
     }
+    
+    func updateDevices() {
+        if let devices = self.profile.remoteClientsAndTabs.getRemoteDevices().value.successValue {
+            for device in devices {
+                let deviceShareItem = DevicesShareSheet(title: device.name, image: UIImage(named: "faviconFox")) { sharedItems in
+                    self.profile.sendItem(ShareItem(url: self.url.absoluteString, title: nil, favicon: nil), toDevices: [device])
+                }
+                devicesActions.append(deviceShareItem)
+            }
+        }
+    }
 
-    func createActivityViewController2(devices:[DevicesShareSheet]? = nil, completionHandler: @escaping (_ completed: Bool, _ activityType: UIActivity.ActivityType?) -> Void) -> UIActivityViewController {
+    func createActivityViewController(devices:[DevicesShareSheet]? = nil, completionHandler: @escaping (_ completed: Bool, _ activityType: UIActivity.ActivityType?) -> Void) -> UIActivityViewController {
         var activityItems = [AnyObject]()
-        self.devicesActions = devices
+//        self.devicesActions = devices
         
         let printInfo = UIPrintInfo(dictionary: nil)
         printInfo.jobName = (url.absoluteString as NSString).lastPathComponent
@@ -85,6 +84,8 @@ class ShareExtensionHelper: NSObject {
             activityItems.append(TitleActivityItemProvider(title: title))
         }
         activityItems.append(self)
+        
+//        let activityViewController = UIActivityViewController(activityItems: activityItems, applicationActivities: devices)
         
         let activityViewController = UIActivityViewController(activityItems: activityItems, applicationActivities: devicesActions)
         
@@ -121,7 +122,7 @@ class ShareExtensionHelper: NSObject {
         }
         return activityViewController
     }
-
+/*
     func createActivityViewController(_ completionHandler: @escaping (_ completed: Bool, _ activityType: UIActivity.ActivityType?) -> Void) -> UIActivityViewController {
         var activityItems = [AnyObject]()
 
@@ -206,7 +207,9 @@ class ShareExtensionHelper: NSObject {
         }
         return activityViewController
     }
+ */
 }
+
 
 extension ShareExtensionHelper: UIActivityItemSource {
     func activityViewControllerPlaceholderItem(_ activityViewController: UIActivityViewController) -> Any {
