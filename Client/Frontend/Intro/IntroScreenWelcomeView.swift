@@ -90,18 +90,20 @@ class IntroScreenWelcomeView: UIView {
             let label = UILabel()
             label.text = title
             label.textColor = titleColour
-            label.font = UIFont.systemFont(ofSize: 20, weight: .semibold)
+            label.font = UIFont.systemFont(ofSize: 19, weight: .semibold)
             label.textAlignment = .left
-            label.numberOfLines = 0
+            label.numberOfLines = 1
+            label.adjustsFontSizeToFitWidth = true
             return label
         }()
         lazy var descriptionLabel: UILabel = {
             let label = UILabel()
             label.text = description
             label.textColor = descriptionColour
-            label.font = UIFont.systemFont(ofSize: 20, weight: .regular)
+            label.font = UIFont.systemFont(ofSize: 19, weight: .regular)
             label.textAlignment = .left
-            label.numberOfLines = 0
+            label.numberOfLines = 2
+            label.adjustsFontSizeToFitWidth = true
             return label
         }()
     }
@@ -119,6 +121,13 @@ class IntroScreenWelcomeView: UIView {
         cardItems.append(safeSync)
         return cardItems
     }()
+
+    var topView = UIView()
+    var automaticPrivacyView = UIView()
+    var fastSearchView = UIView()
+    var safeSyncView = UIView()
+    var itemStackView = UIStackView()
+    var combinedView = UIView()
     
     required init?(coder aDecoder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
@@ -126,100 +135,120 @@ class IntroScreenWelcomeView: UIView {
     
     override init(frame: CGRect) {
         super.init(frame: frame)
-    
-        initialViewSetup()
-        setupTopView()
-        setupMidView()
-        setupBottomView()
+  
+        tempSetup()
     }
     
-    private func initialViewSetup() {
-        backgroundColor = fxBackgroundThemeColour
+    private func tempSetup() {
+//        topView.backgroundColor = .orange
+        topView.addSubview(titleImageView)
+        topView.addSubview(titleLabel)
         
-        // Initialize
+//        automaticPrivacyView.backgroundColor = .red
+//        fastSearchView.backgroundColor = .purple
+//        safeSyncView.backgroundColor = .cyan
+
+        automaticPrivacyView.addSubview(welcomeCardItems[0].titleLabel)
+        automaticPrivacyView.addSubview(welcomeCardItems[0].descriptionLabel)
+        
+        fastSearchView.addSubview(welcomeCardItems[1].titleLabel)
+        fastSearchView.addSubview(welcomeCardItems[1].descriptionLabel)
+        
+        safeSyncView.addSubview(welcomeCardItems[2].titleLabel)
+        safeSyncView.addSubview(welcomeCardItems[2].descriptionLabel)
+        
+        itemStackView.axis = .vertical
+        itemStackView.distribution = .fillProportionally
+        itemStackView.addArrangedSubview(automaticPrivacyView)
+        itemStackView.addArrangedSubview(fastSearchView)
+        itemStackView.addArrangedSubview(safeSyncView)
+        
+//        addSubview(topView)
+//        addSubview(itemStackView)
+        combinedView.addSubview(topView)
+        combinedView.addSubview(itemStackView)
+        addSubview(combinedView)
+
         addSubview(closeButton)
-        addSubview(titleImageView)
-        addSubview(titleLabel)
-        addSubview(nextButton)
-        // Automatic Privacy | Fast Search | Safe Sync - Labels
-        for i in 0...2 {
-            addSubview(welcomeCardItems[i].titleLabel)
-            addSubview(welcomeCardItems[i].descriptionLabel)
-        }
-    }
-    
-    func setupTopView() {
-        // Done button target setup
         closeButton.addTarget(self, action: #selector(dismissAnimated), for: .touchUpInside)
         closeButton.snp.makeConstraints { make in
             make.top.equalToSuperview().offset(30)
             make.right.equalToSuperview().inset(10)
         }
-
-        titleImageView.snp.makeConstraints { make in
-            make.left.right.equalToSuperview()
-            make.top.equalTo(snp.topMargin).inset(40)
-            make.height.width.equalTo(90)
-        }
         
-        titleLabel.snp.makeConstraints { make in
-            make.left.right.equalToSuperview().inset(10)
-            make.top.equalTo(titleImageView.snp.bottom).offset(15)
-            make.height.equalTo(40)
-        }
-    }
-    
-    func setupMidView() {
-        // Automatic Privacy
-        welcomeCardItems[0].titleLabel.backgroundColor = UIColor.lightGray
-        welcomeCardItems[0].titleLabel.snp.makeConstraints { make in
-            make.left.right.equalToSuperview().inset(20)
-            make.top.equalTo(titleLabel.snp.bottom).inset(-10)
-            make.height.width.equalTo(24)
-        }
-        welcomeCardItems[0].descriptionLabel.backgroundColor = UIColor.yellow
-        welcomeCardItems[0].descriptionLabel.snp.makeConstraints { make in
-            make.left.right.equalToSuperview().inset(20)
-            make.top.equalTo(welcomeCardItems[0].titleLabel.snp.bottom).inset(-2)
-            make.height.width.equalTo(80)
-        }
-        
-        // Fast Search
-        welcomeCardItems[1].titleLabel.backgroundColor = UIColor.lightGray
-        welcomeCardItems[1].titleLabel.snp.makeConstraints { make in
-            make.left.right.equalToSuperview().inset(20)
-            make.top.equalTo(welcomeCardItems[0].descriptionLabel.snp.bottom).inset(-10)
-            make.height.width.equalTo(24)
-        }
-        welcomeCardItems[1].descriptionLabel.backgroundColor = UIColor.yellow
-        welcomeCardItems[1].descriptionLabel.snp.makeConstraints { make in
-            make.left.right.equalToSuperview().inset(20)
-            make.top.equalTo(welcomeCardItems[1].titleLabel.snp.bottom).inset(-2)
-            make.height.width.equalTo(50)
-        }
-        
-        // Safe Sync
-        welcomeCardItems[2].titleLabel.backgroundColor = UIColor.lightGray
-        welcomeCardItems[2].titleLabel.snp.makeConstraints { make in
-            make.left.right.equalToSuperview().inset(20)
-            make.top.equalTo(welcomeCardItems[1].descriptionLabel.snp.bottom).inset(-10)
-            make.height.width.equalTo(24)
-        }
-        welcomeCardItems[2].descriptionLabel.backgroundColor = UIColor.yellow
-        welcomeCardItems[2].descriptionLabel.snp.makeConstraints { make in
-            make.left.right.equalToSuperview().inset(20)
-            make.top.equalTo(welcomeCardItems[2].titleLabel.snp.bottom).inset(-2)
-            make.height.width.equalTo(50)
-        }
-    }
-    
-    func setupBottomView() {
-        // Next button start browsing target setup
+        addSubview(nextButton)
         nextButton.addTarget(self, action: #selector(nextAction), for: .touchUpInside)
         nextButton.snp.makeConstraints { make in
             make.left.right.equalToSuperview()
-            make.bottom.equalToSuperview().inset(22)
-            make.height.equalTo(46)
+            make.bottom.equalTo(safeArea.bottom).inset(10)
+            make.height.equalTo(30)
+        }
+        
+        topView.snp.makeConstraints { make in
+            make.top.equalToSuperview()
+            make.left.right.equalToSuperview()
+            make.height.equalToSuperview().dividedBy(2)
+        }
+//        combinedView.backgroundColor = .lightGray
+        combinedView.snp.makeConstraints { make in
+            make.left.right.equalToSuperview()
+            make.centerY.equalToSuperview()
+            //iphone 5s height devidedby 1.2
+            make.height.equalToSuperview().dividedBy(1.2)
+        }
+        combinedView.sizeToFit()
+        
+        itemStackView.snp.makeConstraints { make in
+            let h = frame.height
+            // On large iPhone screens, bump this up from the bottom
+//            let offset: CGFloat = UIDevice.current.userInterfaceIdiom == .pad ? 20 : (h > 800 ? 60 : 20)
+            make.left.right.equalToSuperview()
+            make.height.equalToSuperview().dividedBy(2)
+            //iPhone 5s inset equals 0 - can also keep for o
+            make.bottom.equalToSuperview()
+        }
+
+//        titleImageView.backgroundColor = .yellow
+        titleImageView.snp.makeConstraints { make in
+            make.left.right.equalToSuperview()
+            make.centerY.equalToSuperview().offset(-15)
+            make.height.equalToSuperview().dividedBy(2)
+        }
+
+        titleLabel.snp.makeConstraints { make in
+            make.top.equalTo(titleImageView.snp.bottom).offset(23)
+            make.left.right.equalToSuperview()
+            make.height.equalTo(30)
+        }
+
+        welcomeCardItems[0].titleLabel.snp.makeConstraints { make in
+            make.left.right.equalToSuperview().inset(20)
+            make.top.equalToSuperview()
+        }
+
+        welcomeCardItems[0].descriptionLabel.snp.makeConstraints { make in
+            make.left.right.equalToSuperview().inset(20)
+            make.top.equalTo(welcomeCardItems[0].titleLabel.snp.bottom).offset(2)
+        }
+
+        welcomeCardItems[1].titleLabel.snp.makeConstraints { make in
+            make.left.right.equalToSuperview().inset(20)
+            make.top.equalToSuperview()
+        }
+
+        welcomeCardItems[1].descriptionLabel.snp.makeConstraints { make in
+            make.left.right.equalToSuperview().inset(20)
+            make.top.equalTo(welcomeCardItems[1].titleLabel.snp.bottom).offset(2)
+        }
+
+        welcomeCardItems[2].titleLabel.snp.makeConstraints { make in
+            make.left.right.equalToSuperview().inset(20)
+            make.top.equalToSuperview()
+        }
+
+        welcomeCardItems[2].descriptionLabel.snp.makeConstraints { make in
+            make.left.right.equalToSuperview().inset(20)
+            make.top.equalTo(welcomeCardItems[2].titleLabel.snp.bottom).offset(2)
         }
     }
     
