@@ -37,7 +37,6 @@ import SnapKit
 */
 
 class IntroScreenWelcomeView: UIView {
-//    weak var delegate: Any?
     static let theme = BuiltinThemeName(rawValue: ThemeManager.instance.current.name) ?? .normal
     // Private vars
     private var fxTextThemeColour: UIColor {
@@ -141,12 +140,14 @@ class IntroScreenWelcomeView: UIView {
     
     private func tempSetup() {
 //        topView.backgroundColor = .orange
-        topView.addSubview(titleImageView)
-        topView.addSubview(titleLabel)
-        
 //        automaticPrivacyView.backgroundColor = .red
 //        fastSearchView.backgroundColor = .purple
 //        safeSyncView.backgroundColor = .cyan
+//        combinedView.backgroundColor = .lightGray
+        let screenHeight = UIScreen.main.bounds.size.height
+        topView.addSubview(titleImageView)
+        topView.addSubview(titleLabel)
+        
 
         automaticPrivacyView.addSubview(welcomeCardItems[0].titleLabel)
         automaticPrivacyView.addSubview(welcomeCardItems[0].descriptionLabel)
@@ -185,33 +186,40 @@ class IntroScreenWelcomeView: UIView {
         }
         
         topView.snp.makeConstraints { make in
-            make.top.equalToSuperview()
+            make.top.equalToSuperview().inset(-20)
             make.left.right.equalToSuperview()
-            make.height.equalToSuperview().dividedBy(2)
+            make.height.equalToSuperview().dividedBy(2.4)
         }
-//        combinedView.backgroundColor = .lightGray
+        
         combinedView.snp.makeConstraints { make in
             make.left.right.equalToSuperview()
             make.centerY.equalToSuperview()
             //iphone 5s height devidedby 1.2
-            make.height.equalToSuperview().dividedBy(1.2)
+            make.height.equalToSuperview().dividedBy(1.3)
         }
         combinedView.sizeToFit()
         
         itemStackView.snp.makeConstraints { make in
-            let h = frame.height
+//            let h = frame.height
             // On large iPhone screens, bump this up from the bottom
 //            let offset: CGFloat = UIDevice.current.userInterfaceIdiom == .pad ? 20 : (h > 800 ? 60 : 20)
             make.left.right.equalToSuperview()
-            make.height.equalToSuperview().dividedBy(2)
+            //1.6 for iphone 6 and lower
+            //1.9 for iphone 6plus and higher
+//            make.height.equalToSuperview().dividedBy(1.9)
+            make.height.equalTo(320)
             //iPhone 5s inset equals 0 - can also keep for o
-            make.bottom.equalToSuperview()
+//            make.bottom.equalToSuperview()
+            let insetValue = screenHeight > 570 ? -10 : 4
+            make.top.equalTo(topView.snp.bottom).inset(insetValue)
         }
 
 //        titleImageView.backgroundColor = .yellow
         titleImageView.snp.makeConstraints { make in
             make.left.right.equalToSuperview()
-            make.centerY.equalToSuperview().offset(-15)
+//            make.centerY.equalToSuperview().offset(-30)
+            let offsetValue = screenHeight > 570 ? 40 : 10
+            make.top.equalToSuperview().offset(offsetValue)
             make.height.equalToSuperview().dividedBy(2)
         }
 
