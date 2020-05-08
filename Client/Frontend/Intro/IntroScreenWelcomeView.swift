@@ -12,26 +12,34 @@ import Shared
 import SnapKit
 
 /* The layout for update view controller.
-   
+
+[Top View] and [Stack View] are put together in another
+uiview called combined view mainly to put the whole thing
+in the middle of the screen.
+ 
 |----------------|
-|            Done|
-|     Image      | (Top View)
+|           Cross| Cross button is on top right corner
 |                |
-|Title Multiline |
+|----------------|----------[Combined View]--------------
+|                |
+|     Image      | [Top View]
+|                |      -- Has title image view
+|Title Multiline |      -- Title label view
 |----------------|
-|     Title      |
-|   Description  |
-|                | (Mid View)
-|     Title      |
-|   Description  |
+|                | [Stack View] - Fixed height and
+|                |  contains subviews with title and description
+|     Title      |  -- automaticPrivacyView
+|   Description  |      -- Title & Description label uiviews
 |                |
-|     Title      |
-|   Description  |
+|     Title      |  -- fastSearchView
+|   Description  |      -- Title & Description label uiviews
 |                |
-|----------------|
+|     Title      |  -- safeSyncView
+|   Description  |      -- Title & Description label uiviews
 |                |
+|----------------|----------[Combined View]--------------
 |                |
-|    [Button]    | (Bottom View)
+|    [Next]      | Bottom View - Only Has next button
 |----------------|
 
 */
@@ -46,6 +54,10 @@ class IntroScreenWelcomeView: UIView {
     private var fxBackgroundThemeColour: UIColor {
         return UpdateViewController.theme == .dark ? .black : .white
     }
+    
+    var nextClosure: (() -> Void)?
+    var closeClosure: (() -> Void)?
+    
     private lazy var titleImageView: UIImageView = {
         let imgView = UIImageView(image: #imageLiteral(resourceName: "splash"))
         imgView.contentMode = .scaleAspectFit
@@ -79,8 +91,9 @@ class IntroScreenWelcomeView: UIView {
         button.titleLabel?.textAlignment = .center
         return button
     }()
-    
-    struct WelcomeUICardItem {
+    // Welcome card items share same type of label hence combining them into a
+    // struct so we can reuse it
+    private struct WelcomeUICardItem {
         var title:String
         var description:String
         var titleColour: UIColor
@@ -106,7 +119,6 @@ class IntroScreenWelcomeView: UIView {
             return label
         }()
     }
-    
     private lazy var welcomeCardItems: [WelcomeUICardItem] = {
         var cardItems = [WelcomeUICardItem]()
         // Automatic Privacy
@@ -120,13 +132,15 @@ class IntroScreenWelcomeView: UIView {
         cardItems.append(safeSync)
         return cardItems
     }()
-
-    var topView = UIView()
-    var automaticPrivacyView = UIView()
-    var fastSearchView = UIView()
-    var safeSyncView = UIView()
-    var itemStackView = UIStackView()
-    var combinedView = UIView()
+    // See above for explanation of each of these views
+    private var topView = UIView()
+    private var automaticPrivacyView = UIView()
+    private var fastSearchView = UIView()
+    private var safeSyncView = UIView()
+    private var itemStackView = UIStackView()
+    private var combinedView = UIView()
+    // Screen constants
+    private let screenHeight = UIScreen.main.bounds.size.height
     
     required init?(coder aDecoder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
@@ -134,138 +148,136 @@ class IntroScreenWelcomeView: UIView {
     
     override init(frame: CGRect) {
         super.init(frame: frame)
-  
-        tempSetup()
+        initialViewSetup()
+        topViewSetup()
+        stackViewSetup()
+        combinedViewSetup()
     }
     
-    private func tempSetup() {
-//        topView.backgroundColor = .orange
-//        automaticPrivacyView.backgroundColor = .red
-//        fastSearchView.backgroundColor = .purple
-//        safeSyncView.backgroundColor = .cyan
-//        combinedView.backgroundColor = .lightGray
-        let screenHeight = UIScreen.main.bounds.size.height
+    private func initialViewSetup() {
+        // Adding close button
+        addSubview(closeButton)
+        // Top view
         topView.addSubview(titleImageView)
         topView.addSubview(titleLabel)
-        
-
+        // Stack View
+        // Automatic Privacy
         automaticPrivacyView.addSubview(welcomeCardItems[0].titleLabel)
         automaticPrivacyView.addSubview(welcomeCardItems[0].descriptionLabel)
-        
+        // Fast Search
         fastSearchView.addSubview(welcomeCardItems[1].titleLabel)
         fastSearchView.addSubview(welcomeCardItems[1].descriptionLabel)
-        
+        // Safe Sync
         safeSyncView.addSubview(welcomeCardItems[2].titleLabel)
         safeSyncView.addSubview(welcomeCardItems[2].descriptionLabel)
-        
+        // Adding all three items to tem stack view
+        // Automatic Privacy + Fast Search + Safe Sync
         itemStackView.axis = .vertical
         itemStackView.distribution = .fillProportionally
         itemStackView.addArrangedSubview(automaticPrivacyView)
         itemStackView.addArrangedSubview(fastSearchView)
         itemStackView.addArrangedSubview(safeSyncView)
-        
-//        addSubview(topView)
-//        addSubview(itemStackView)
+        // Adding [Top View] and [Stack View] together put in a combined view
         combinedView.addSubview(topView)
         combinedView.addSubview(itemStackView)
         addSubview(combinedView)
-
-        addSubview(closeButton)
+        // Adding next button
+        addSubview(nextButton)
+    }
+    
+    private func topViewSetup() {
+        // Background colour setup
+        backgroundColor = fxBackgroundThemeColour
+        // Close button target and constraints
         closeButton.addTarget(self, action: #selector(dismissAnimated), for: .touchUpInside)
         closeButton.snp.makeConstraints { make in
             make.top.equalToSuperview().offset(30)
             make.right.equalToSuperview().inset(10)
         }
-        
-        addSubview(nextButton)
-        nextButton.addTarget(self, action: #selector(nextAction), for: .touchUpInside)
-        nextButton.snp.makeConstraints { make in
-            make.left.right.equalToSuperview()
-            make.bottom.equalTo(safeArea.bottom).inset(10)
-            make.height.equalTo(30)
-        }
-        
+        // Top view constraints
         topView.snp.makeConstraints { make in
             make.top.equalToSuperview().inset(-20)
             make.left.right.equalToSuperview()
             make.height.equalToSuperview().dividedBy(2.4)
         }
-        
-        combinedView.snp.makeConstraints { make in
-            make.left.right.equalToSuperview()
-            make.centerY.equalToSuperview()
-            //iphone 5s height devidedby 1.2
-            make.height.equalToSuperview().dividedBy(1.3)
-        }
-        combinedView.sizeToFit()
-        
-        itemStackView.snp.makeConstraints { make in
-//            let h = frame.height
-            // On large iPhone screens, bump this up from the bottom
-//            let offset: CGFloat = UIDevice.current.userInterfaceIdiom == .pad ? 20 : (h > 800 ? 60 : 20)
-            make.left.right.equalToSuperview()
-            //1.6 for iphone 6 and lower
-            //1.9 for iphone 6plus and higher
-//            make.height.equalToSuperview().dividedBy(1.9)
-            make.height.equalTo(320)
-            //iPhone 5s inset equals 0 - can also keep for o
-//            make.bottom.equalToSuperview()
-            let insetValue = screenHeight > 570 ? -10 : 4
-            make.top.equalTo(topView.snp.bottom).inset(insetValue)
-        }
-
-//        titleImageView.backgroundColor = .yellow
+        // Title image constraints
         titleImageView.snp.makeConstraints { make in
             make.left.right.equalToSuperview()
-//            make.centerY.equalToSuperview().offset(-30)
+            // changing offset for smaller screen Eg. iPhone 5
             let offsetValue = screenHeight > 570 ? 40 : 10
             make.top.equalToSuperview().offset(offsetValue)
             make.height.equalToSuperview().dividedBy(2)
         }
-
+        // Title label constraints
         titleLabel.snp.makeConstraints { make in
             make.top.equalTo(titleImageView.snp.bottom).offset(23)
             make.left.right.equalToSuperview()
             make.height.equalTo(30)
         }
-
+    }
+    
+    private func stackViewSetup() {
+        // Item stack view constraints
+        itemStackView.snp.makeConstraints { make in
+            make.left.right.equalToSuperview()
+            make.height.equalTo(320)
+            // changing inset for smaller screen Eg. iPhone 5
+            let insetValue = screenHeight > 570 ? -10 : 4
+            make.top.equalTo(topView.snp.bottom).inset(insetValue)
+        }
+        // Automaitc privacy
         welcomeCardItems[0].titleLabel.snp.makeConstraints { make in
             make.left.right.equalToSuperview().inset(20)
             make.top.equalToSuperview()
         }
-
         welcomeCardItems[0].descriptionLabel.snp.makeConstraints { make in
             make.left.right.equalToSuperview().inset(20)
             make.top.equalTo(welcomeCardItems[0].titleLabel.snp.bottom).offset(2)
         }
-
+        // Fast Search
         welcomeCardItems[1].titleLabel.snp.makeConstraints { make in
             make.left.right.equalToSuperview().inset(20)
             make.top.equalToSuperview()
         }
-
         welcomeCardItems[1].descriptionLabel.snp.makeConstraints { make in
             make.left.right.equalToSuperview().inset(20)
             make.top.equalTo(welcomeCardItems[1].titleLabel.snp.bottom).offset(2)
         }
-
+        // Safe Sync
         welcomeCardItems[2].titleLabel.snp.makeConstraints { make in
             make.left.right.equalToSuperview().inset(20)
             make.top.equalToSuperview()
         }
-
         welcomeCardItems[2].descriptionLabel.snp.makeConstraints { make in
             make.left.right.equalToSuperview().inset(20)
             make.top.equalTo(welcomeCardItems[2].titleLabel.snp.bottom).offset(2)
         }
     }
     
+    private func combinedViewSetup() {
+        // Combined top view and stack view constraints
+        combinedView.snp.makeConstraints { make in
+            make.left.right.equalToSuperview()
+            make.centerY.equalToSuperview()
+            make.height.equalToSuperview().dividedBy(1.3)
+        }
+        // Next Button bottom action and constraints
+        nextButton.addTarget(self, action: #selector(nextAction), for: .touchUpInside)
+        nextButton.snp.makeConstraints { make in
+            make.left.right.equalToSuperview()
+            make.bottom.equalTo(safeArea.bottom).inset(10)
+            make.height.equalTo(30)
+        }
+    }
+    
     // Button Actions
     @objc private func dismissAnimated() {
         print("Dismiss Action")
+        closeClosure?()
     }
     
     @objc private func nextAction() {
         print("Next Action")
+        nextClosure?()
     }
 }
