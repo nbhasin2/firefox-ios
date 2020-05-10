@@ -46,27 +46,38 @@ class IntroViewControllerV2: UIViewController {
         view.addSubview(welcomeCard)
         // Constraints
         setupWelcomeCard()
+        setupSyncCard()
+    }
 
+    func setupWelcomeCard() {
+        // Constraints
+        welcomeCard.snp.makeConstraints { make in
+            make.edges.equalToSuperview()
+        }
+        // Buton action closures
+        // Next button action
         welcomeCard.nextClosure = {
             print("Going to next screen")
-            self.welcomeCard.isHidden = true
+            UIView.animate(withDuration: 0.3, animations: {
+                self.welcomeCard.alpha = 0
+            }) { _ in
+                self.welcomeCard.isHidden = true
+            }
         }
-        
+        // Close button action
         welcomeCard.closeClosure = {
-            self.dismiss(animated: true)
-        }
-        
-        syncCard.startBrowsing = {
             self.dismiss(animated: true)
         }
     }
     
-    func setupWelcomeCard() {
-        welcomeCard.snp.makeConstraints { make in
-            make.edges.equalToSuperview()
-        }
+    func setupSyncCard() {
         syncCard.snp.makeConstraints() { make in
             make.edges.equalToSuperview()
+        }
+        // Buton action closures
+        // Start browsing button action
+        syncCard.startBrowsing = {
+            self.dismiss(animated: true)
         }
     }
 }

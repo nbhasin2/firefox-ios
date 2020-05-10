@@ -17,7 +17,7 @@ to make it center in the top container view.
  
 |----------------|----------[Top Container View]---------
 |                |
-|                |----------[Combined View]
+|                |---------[Combined View]
 |                |
 |     Image      | [Top View]
 |                |      -- Has title image view
@@ -28,7 +28,7 @@ to make it center in the top container view.
 |   Description  |
 |                |---------[Combined View]
 |                |
-|----------------|----------[Top Container View]--------------
+|----------------|----------[Top Container View]---------
 |                |  Bottom View
 |   [Sign up]    |      -- Bottom View
 |                |      -- Start Browsing
@@ -93,6 +93,9 @@ class IntroScreenSyncView: UIView {
         button.titleLabel?.textAlignment = .center
         return button
     }()
+    // Container and combined views
+    let topContainerView = UIView()
+    let combinedView = UIView()
     // Screen constants
     private let screenHeight = UIScreen.main.bounds.size.height
     
@@ -103,170 +106,76 @@ class IntroScreenSyncView: UIView {
     override init(frame: CGRect) {
         super.init(frame: frame)
         initialViewSetup()
-        topViewSetup()
-        stackViewSetup()
-        combinedViewSetup()
+        topContainerViewSetup()
+        bottomViewSetup()
     }
     
     private func initialViewSetup() {
-
-        let titleLabelHeight = 100
-        let descriptionLabelHeight = 100
-        let titleImageHeight = screenHeight > 600 ? 300 : 200
-        
-        let topContainerView = UIView()
-        addSubview(topContainerView)
-        
-        let combinedView = UIView()
         combinedView.addSubview(titleLabel)
         combinedView.addSubview(descriptionLabel)
         combinedView.addSubview(titleImageView)
-        
         topContainerView.addSubview(combinedView)
+        addSubview(topContainerView)
+        addSubview(signUpButton)
+        addSubview(startBrowsingButton)
+    }
+    
+    private func topContainerViewSetup() {
+        // Background colour setup
+        backgroundColor = fxBackgroundThemeColour
+        // Height constants
+        let titleLabelHeight = 100
+        let descriptionLabelHeight = 100
+        let titleImageHeight = screenHeight > 600 ? 300 : 200
+        // Title label constraints
         titleLabel.snp.makeConstraints { make in
             make.left.right.equalToSuperview().inset(24)
-//            make.top.equalToSuperview()
             make.top.equalTo(titleImageView.snp.bottom)
             make.height.equalTo(titleLabelHeight)
         }
-        
+        // Description label constraints
         descriptionLabel.snp.makeConstraints { make in
             make.left.right.equalToSuperview().inset(24)
             make.top.equalTo(titleLabel.snp.bottom)
             make.height.equalTo(descriptionLabelHeight)
         }
-//        addSubview(titleLabel)
-//        addSubview(descriptionLabel)
-        
-        addSubview(signUpButton)
-        addSubview(startBrowsingButton)
-        
+        // Title image view constraints
         titleImageView.snp.makeConstraints { make in
             make.left.right.equalToSuperview()
             make.top.equalToSuperview()
-//            make.top.equalToSuperview().offset(40)
-//            make.top.equalTo(safeArea.top).offset(40)
             make.height.equalTo(titleImageHeight)
-//            make.height.equalToSuperview().dividedBy(2.5)
         }
-        
+        // Top container view constraints
         topContainerView.snp.makeConstraints { make in
-//            make.top.equalTo(titleImageView.snp.bottom)
             make.top.equalTo(safeArea.top)
             make.bottom.equalTo(signUpButton.snp.top)
             make.left.right.equalToSuperview()
         }
-        
+        // Combined view constraints
         combinedView.snp.makeConstraints { make in
             make.height.equalTo(titleLabelHeight + descriptionLabelHeight + titleImageHeight)
             make.centerY.equalToSuperview()
             make.left.right.equalToSuperview()
         }
-        
+    }
+    
+    private func bottomViewSetup() {
+        // Sign-up button constraints
         signUpButton.snp.makeConstraints { make in
             make.bottom.equalTo(startBrowsingButton.snp.top).offset(-20)
             make.left.right.equalToSuperview().inset(24)
             make.height.equalTo(46)
             
         }
-        
+        // Start browsing button constraints
         startBrowsingButton.snp.makeConstraints { make in
             make.bottom.equalTo(safeArea.bottom)
             make.left.right.equalToSuperview().inset(80)
             make.height.equalTo(46)
         }
-        
+        // Sign-up and start browsing button action
         signUpButton.addTarget(self, action: #selector(signUpAction), for: .touchUpInside)
         startBrowsingButton.addTarget(self, action: #selector(startBrowsingAction), for: .touchUpInside)
-    }
-    
-    private func topViewSetup() {
-        // Background colour setup
-        backgroundColor = fxBackgroundThemeColour
-        
-        
-        
-        
-//         Close button target and constraints
-//        closeButton.addTarget(self, action: #selector(dismissAnimated), for: .touchUpInside)
-//        closeButton.snp.makeConstraints { make in
-//            make.top.equalToSuperview().offset(30)
-//            make.right.equalToSuperview().inset(10)
-//        }
-//        // Top view constraints
-//        topView.snp.makeConstraints { make in
-//            make.top.equalToSuperview().inset(-20)
-//            make.left.right.equalToSuperview()
-//            make.height.equalToSuperview().dividedBy(2.4)
-//        }
-//        // Title image constraints
-//        titleImageView.snp.makeConstraints { make in
-//            make.left.right.equalToSuperview()
-//            // changing offset for smaller screen Eg. iPhone 5
-//            let offsetValue = screenHeight > 570 ? 40 : 10
-//            make.top.equalToSuperview().offset(offsetValue)
-//            make.height.equalToSuperview().dividedBy(2)
-//        }
-//        // Title label constraints
-//        titleLabel.snp.makeConstraints { make in
-//            make.top.equalTo(titleImageView.snp.bottom).offset(23)
-//            make.left.right.equalToSuperview()
-//            make.height.equalTo(30)
-//        }
-    }
-    
-    private func stackViewSetup() {
-//        // Item stack view constraints
-//        itemStackView.snp.makeConstraints { make in
-//            make.left.right.equalToSuperview()
-//            make.height.equalTo(320)
-//            // changing inset for smaller screen Eg. iPhone 5
-//            let insetValue = screenHeight > 570 ? -10 : 4
-//            make.top.equalTo(topView.snp.bottom).inset(insetValue)
-//        }
-//        // Automaitc privacy
-//        welcomeCardItems[0].titleLabel.snp.makeConstraints { make in
-//            make.left.right.equalToSuperview().inset(20)
-//            make.top.equalToSuperview()
-//        }
-//        welcomeCardItems[0].descriptionLabel.snp.makeConstraints { make in
-//            make.left.right.equalToSuperview().inset(20)
-//            make.top.equalTo(welcomeCardItems[0].titleLabel.snp.bottom).offset(2)
-//        }
-//        // Fast Search
-//        welcomeCardItems[1].titleLabel.snp.makeConstraints { make in
-//            make.left.right.equalToSuperview().inset(20)
-//            make.top.equalToSuperview()
-//        }
-//        welcomeCardItems[1].descriptionLabel.snp.makeConstraints { make in
-//            make.left.right.equalToSuperview().inset(20)
-//            make.top.equalTo(welcomeCardItems[1].titleLabel.snp.bottom).offset(2)
-//        }
-//        // Safe Sync
-//        welcomeCardItems[2].titleLabel.snp.makeConstraints { make in
-//            make.left.right.equalToSuperview().inset(20)
-//            make.top.equalToSuperview()
-//        }
-//        welcomeCardItems[2].descriptionLabel.snp.makeConstraints { make in
-//            make.left.right.equalToSuperview().inset(20)
-//            make.top.equalTo(welcomeCardItems[2].titleLabel.snp.bottom).offset(2)
-//        }
-    }
-    
-    private func combinedViewSetup() {
-//        // Combined top view and stack view constraints
-//        combinedView.snp.makeConstraints { make in
-//            make.left.right.equalToSuperview()
-//            make.centerY.equalToSuperview()
-//            make.height.equalToSuperview().dividedBy(1.3)
-//        }
-//        // Next Button bottom action and constraints
-//        nextButton.addTarget(self, action: #selector(nextAction), for: .touchUpInside)
-//        nextButton.snp.makeConstraints { make in
-//            make.left.right.equalToSuperview()
-//            make.bottom.equalTo(safeArea.bottom).inset(10)
-//            make.height.equalTo(30)
-//        }
     }
     
     // Button Actions
