@@ -1,10 +1,6 @@
-//
-//  IntroScreenWelcomeView.swift
-//  Client
-//
-//  Created by Nishant Bhasin on 2020-05-05.
-//  Copyright © 2020 Mozilla. All rights reserved.
-//
+/* This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 import Foundation
 import UIKit
@@ -86,7 +82,7 @@ class IntroScreenWelcomeView: UIView {
     private lazy var nextButton: UIButton = {
         let button = UIButton()
         button.setTitle(Strings.IntroNextButtonTitle, for: .normal)
-        button.titleLabel?.font = UpdateViewControllerUX.StartBrowsingButton.font
+        button.titleLabel?.font = UIFont.systemFont(ofSize: 18, weight: .semibold)
         button.setTitleColor(UIColor.Photon.Blue50, for: .normal)
         button.titleLabel?.textAlignment = .center
         return button
