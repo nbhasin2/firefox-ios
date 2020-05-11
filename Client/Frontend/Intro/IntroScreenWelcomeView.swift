@@ -269,6 +269,8 @@ class IntroScreenWelcomeView: UIView {
     // Button Actions
     @objc private func dismissAnimated() {
         print("Dismiss Action")
+        LeanPlumClient.shared.track(event: .dismissedOnboarding, withParameters: ["dismissedOnSlide": "0"])
+         UnifiedTelemetry.recordEvent(category: .action, method: .press, object: .dismissedOnboarding, extras: ["slide-num": 0])
         closeClosure?()
     }
     

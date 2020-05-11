@@ -6,6 +6,7 @@ import Foundation
 import UIKit
 import SnapKit
 import Shared
+import Leanplum
 
 class IntroViewControllerV2: UIViewController {
     private lazy var welcomeCard: IntroScreenWelcomeView = {
@@ -39,7 +40,7 @@ class IntroViewControllerV2: UIViewController {
         super.viewDidLoad()
         initialViewSetup()
     }
-    let tempView = UIView()
+    
     func initialViewSetup() {
         // Initialize
         view.addSubview(syncCard)

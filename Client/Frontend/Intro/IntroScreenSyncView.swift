@@ -180,11 +180,15 @@ class IntroScreenSyncView: UIView {
     
     // Button Actions
     @objc private func signUpAction() {
+        LeanPlumClient.shared.track(event: .dismissedOnboardingShowSignUp, withParameters: ["dismissedOnSlide": "1"])
+        UnifiedTelemetry.recordEvent(category: .action, method: .press, object: .dismissedOnboardingSignUp, extras: ["slide-num": 1])
         print("Sign up")
         signUp?()
     }
     
     @objc private func startBrowsingAction() {
+        LeanPlumClient.shared.track(event: .dismissedOnboarding, withParameters: ["dismissedOnSlide": "1"])
+        UnifiedTelemetry.recordEvent(category: .action, method: .press, object: .dismissedOnboarding, extras: ["slide-num": 1])
         print("Start Browsing")
         startBrowsing?()
     }
