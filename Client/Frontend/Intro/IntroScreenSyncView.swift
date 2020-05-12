@@ -53,7 +53,7 @@ class IntroScreenSyncView: UIView {
     var startBrowsing: (() -> Void)?
     
     private lazy var titleImageView: UIImageView = {
-        let imgView = UIImageView(image: #imageLiteral(resourceName: "tour-Sync"))
+        let imgView = UIImageView(image: #imageLiteral(resourceName: "tour-sync-v2"))
         imgView.contentMode = .scaleAspectFit
         imgView.clipsToBounds = true
         return imgView
