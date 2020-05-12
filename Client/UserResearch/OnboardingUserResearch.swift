@@ -70,7 +70,9 @@ class OnboardingUserResearch {
                 }
                 let abTestName = lpData["abTestName"] as? String ?? ""
                 let abTestVariant = lpData["name"] as? String ?? ""
-                LeanPlumClient.shared.set(attributes:[LPAttributeKey.experimentId: abTestId, LPAttributeKey.experimentName: abTestName, LPAttributeKey.experimentVariant: abTestVariant])
+                let attributesExtras = [LPAttributeKey.experimentId: abTestId, LPAttributeKey.experimentName: abTestName, LPAttributeKey.experimentVariant: abTestVariant]
+                LeanPlumClient.shared.set(attributes: attributesExtras)
+                UnifiedTelemetry.recordEvent(category: .enrollment, method: .add, object: .experimentEnrollment, extras: attributesExtras)
             }
         }
     }
