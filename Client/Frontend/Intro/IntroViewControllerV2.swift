@@ -24,6 +24,8 @@ class IntroViewControllerV2: UIViewController {
         return syncCardView
     }()
     
+    var didFinishClosure: ((IntroViewControllerV2,FxAPageType?) -> Void)?
+    
     init() {
         super.init(nibName: nil, bundle: nil)
     }
@@ -67,7 +69,7 @@ class IntroViewControllerV2: UIViewController {
         }
         // Close button action
         welcomeCard.closeClosure = {
-            self.dismiss(animated: true)
+            self.didFinishClosure?(self, nil)
         }
     }
     
@@ -75,10 +77,13 @@ class IntroViewControllerV2: UIViewController {
         syncCard.snp.makeConstraints() { make in
             make.edges.equalToSuperview()
         }
-        // Buton action closures
         // Start browsing button action
         syncCard.startBrowsing = {
-            self.dismiss(animated: true)
+            self.didFinishClosure?(self, nil)
+        }
+        // Sign-up browsing button action
+        syncCard.signUp = {
+            self.didFinishClosure?(self, .signUpFlow)
         }
     }
 }
