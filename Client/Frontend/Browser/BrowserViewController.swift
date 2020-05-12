@@ -1914,34 +1914,15 @@ extension BrowserViewController: UIAdaptivePresentationControllerDelegate {
 }
 
 extension BrowserViewController: IntroViewControllerDelegate {
-    @discardableResult func presentIntroViewController(_ force: Bool = false, animated: Bool = true) {
-        onboardingUserResearchHelper()
+    func presentIntroViewController(_ forcedType: OnboardingScreenType? = nil) {
         if let deeplink = self.profile.prefs.stringForKey("AdjustDeeplinkKey"), let url = URL(string: deeplink) {
             self.launchFxAFromDeeplinkURL(url)
             return
         }
-
-//        if force || profile.prefs.intForKey(PrefsKeys.IntroSeen) == nil {
-//            let introViewController = IntroViewController()
-//            introViewController.delegate = self
-//            // On iPad we present it modally in a controller
-//            if topTabsVisible {
-//                introViewController.preferredContentSize = CGSize(width: ViewControllerConsts.PreferredSize.IntroViewController.width, height: ViewControllerConsts.PreferredSize.IntroViewController.height)
-//                introViewController.modalPresentationStyle = .formSheet
-//            } else {
-//                introViewController.modalPresentationStyle = .fullScreen
-//            }
-//            present(introViewController, animated: animated) {
-//                // On first run (and forced) open up the homepage in the background.
-//                if let homePageURL = NewTabHomePageAccessors.getHomePage(self.profile.prefs), let tab = self.tabManager.selectedTab, DeviceInfo.hasConnectivity() {
-//                    tab.loadRequest(URLRequest(url: homePageURL))
-//                }
-//            }
-//
-//            return true
-//        }
-//
-//        return false
+//        onboardingUserResearchHelper(forcedType)
+        if forcedType != nil || profile.prefs.intForKey(PrefsKeys.IntroSeen) == nil {
+            onboardingUserResearchHelper(forcedType)
+        }
     }
     
     func presentETPCoverSheetViewController(_ force: Bool = false) {
@@ -2015,10 +1996,14 @@ extension BrowserViewController: IntroViewControllerDelegate {
         return false
     }
     
-    func onboardingUserResearchHelper() {
+    func onboardingUserResearchHelper(_ forcedType: OnboardingScreenType? = nil) {
         print("lp initial value \(String(describing: onboardingUserResearch?.lpVariable?.boolValue()))")
-        //Debug purpose only - making it nil
-        onboardingUserResearch?.onboardingScreenType = nil
+        if forcedType != nil {
+            showProperIntroVC(forcedType)
+            return
+        }
+        
+//        onboardingUserResearch?.onboardingScreenType = nil
         let screenType = onboardingUserResearch?.onboardingScreenType
         if screenType == nil && !DeviceInfo.hasConnectivity() {
             self.onboardingUserResearch?.updateValue(value: true)
@@ -2035,8 +2020,12 @@ extension BrowserViewController: IntroViewControllerDelegate {
         }
     }
     
-    func showProperIntroVC() {
-        switch self.onboardingUserResearch?.onboardingScreenType {
+    func showProperIntroVC(_ forcedType: OnboardingScreenType? = nil) {
+        var onboardingType = self.onboardingUserResearch?.onboardingScreenType
+        if forcedType != nil {
+            onboardingType = forcedType
+        }
+        switch onboardingType {
         case .versionV1:
             self.introVCHelper()
         case .versionV2:
@@ -2045,22 +2034,11 @@ extension BrowserViewController: IntroViewControllerDelegate {
             print("Onboarding screen un-avaialble")
         }
     }
+
     func introVCHelper() {
         let introViewController = IntroViewController()
         introViewController.delegate = self
-        // On iPad we present it modally in a controller
-        if topTabsVisible {
-            introViewController.preferredContentSize = CGSize(width: ViewControllerConsts.PreferredSize.IntroViewController.width, height: ViewControllerConsts.PreferredSize.IntroViewController.height)
-            introViewController.modalPresentationStyle = .formSheet
-        } else {
-            introViewController.modalPresentationStyle = .fullScreen
-        }
-        present(introViewController, animated: true) {
-            // On first run (and forced) open up the homepage in the background.
-            if let homePageURL = NewTabHomePageAccessors.getHomePage(self.profile.prefs), let tab = self.tabManager.selectedTab, DeviceInfo.hasConnectivity() {
-                tab.loadRequest(URLRequest(url: homePageURL))
-            }
-        }
+        self.introVCPresentHelper(introViewController: introViewController)
     }
     
     func introVC2Helper() {
@@ -2078,6 +2056,10 @@ extension BrowserViewController: IntroViewControllerDelegate {
                 }
             }
         }
+        self.introVCPresentHelper(introViewController: introViewController)
+    }
+    
+    func introVCPresentHelper(introViewController: UIViewController) {
         // On iPad we present it modally in a controller
         if topTabsVisible {
             introViewController.preferredContentSize = CGSize(width: ViewControllerConsts.PreferredSize.IntroViewController.width, height: ViewControllerConsts.PreferredSize.IntroViewController.height)
