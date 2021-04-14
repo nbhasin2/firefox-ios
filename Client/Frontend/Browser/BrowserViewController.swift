@@ -53,6 +53,7 @@ class BrowserViewController: UIViewController {
     var firefoxHomeViewController: FirefoxHomeViewController?
     var libraryViewController: LibraryViewController?
     var libraryDrawerViewController: DrawerViewController?
+    var libraryNativeViewController: LibraryNativeViewController?
     var webViewContainer: UIView!
     var urlBar: URLBarView!
     var urlBarHeightConstraint: Constraint!
